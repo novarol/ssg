@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Self
 
 class TextType(Enum):
   PLAIN = "plain"
@@ -14,7 +15,7 @@ class TextNode:
     self.text_type = text_type
     self.url = url
 
-  def __eq__(self, other):
+  def __eq__(self, other: Self):
     return self.text == other.text and self.text_type == other.text_type and self.url == other.url
   
   def __repr__(self):
