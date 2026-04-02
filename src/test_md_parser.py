@@ -1,6 +1,6 @@
 import unittest
 
-from md_parser import split_nodes_delimiter
+from md_parser import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 from textnode import TextNode, TextType
 
 class TestMDParser(unittest.TestCase):
@@ -54,3 +54,39 @@ class TestMDParser(unittest.TestCase):
       TextNode("italic text", TextType.ITALIC),
       TextNode(" in it", TextType.PLAIN)
     ])
+
+  def test_extract_markdown_images(self):
+    matches = extract_markdown_images(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+    )
+    self.assertListEqual(matches, [("image", "https://i.imgur.com/zjjcJKZ.png")])
+
+  def test_extract_markdown_images_multiple(self):
+    matches = extract_markdown_images(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and ![another image](https://example.com/)"
+    )
+    self.assertListEqual(matches, [("image", "https://i.imgur.com/zjjcJKZ.png"), ("another image", "https://example.com/")])
+
+  def test_extract_markdown_images_with_link(self):
+    matches = extract_markdown_images(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://example.com/)"
+    )
+    self.assertListEqual(matches, [("image", "https://i.imgur.com/zjjcJKZ.png")])
+
+  def test_extract_markdown_links(self):
+    matches = extract_markdown_links(
+        "This is text with a [link](https://i.imgur.com/zjjcJKZ.png)"
+    )
+    self.assertListEqual(matches, [("link", "https://i.imgur.com/zjjcJKZ.png")])
+
+  def test_extract_markdown_links_multiple(self):
+    matches = extract_markdown_links(
+        "This is text with a [link](https://i.imgur.com/zjjcJKZ.png) and [another link](https://example.com/)"
+    )
+    self.assertListEqual(matches, [("link", "https://i.imgur.com/zjjcJKZ.png"), ("another link", "https://example.com/")])
+
+  def test_extract_markdown_links_with_image(self):
+    matches = extract_markdown_links(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://example.com/)"
+    )
+    self.assertListEqual(matches, [("link", "https://example.com/")])
