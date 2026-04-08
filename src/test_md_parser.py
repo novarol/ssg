@@ -1,6 +1,6 @@
 import unittest
 
-from md_parser import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
+from md_parser import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
 from textnode import TextNode, TextType
 
 class TestMDParser(unittest.TestCase):
@@ -90,3 +90,65 @@ class TestMDParser(unittest.TestCase):
         "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://example.com/)"
     )
     self.assertListEqual(matches, [("link", "https://example.com/")])
+
+  def test_split_images(self):
+    node = TextNode(
+        "This is text with an ![image](https://example.com/) and another ![second image](https://test.com/)",
+        TextType.PLAIN,
+    )
+    new_nodes = split_nodes_image([node])
+    self.assertListEqual(
+        [
+            TextNode("This is text with an ", TextType.PLAIN),
+            TextNode("image", TextType.IMAGE, "https://example.com/"),
+            TextNode(" and another ", TextType.PLAIN),
+            TextNode("second image", TextType.IMAGE, "https://test.com/"),
+        ],
+        new_nodes,
+    )
+
+  def test_split_images_beginning_end(self):
+    node = TextNode(
+        "![This image](https://example.com/) and ![that image](https://test.com/)",
+        TextType.PLAIN,
+    )
+    new_nodes = split_nodes_image([node])
+    self.assertListEqual(
+        [
+            TextNode("This image", TextType.IMAGE, "https://example.com/"),
+            TextNode(" and ", TextType.PLAIN),
+            TextNode("that image", TextType.IMAGE, "https://test.com/"),
+        ],
+        new_nodes,
+    )
+
+  def test_split_links(self):
+    node = TextNode(
+        "This is text with a [link](https://example.com/) and another [second link](https://test.com/)",
+        TextType.PLAIN,
+    )
+    new_nodes = split_nodes_link([node])
+    self.assertListEqual(
+        [
+            TextNode("This is text with a ", TextType.PLAIN),
+            TextNode("link", TextType.LINK, "https://example.com/"),
+            TextNode(" and another ", TextType.PLAIN),
+            TextNode("second link", TextType.LINK, "https://test.com/"),
+        ],
+        new_nodes,
+    )
+
+  def test_split_links_beginning_end(self):
+    node = TextNode(
+        "[This link](https://example.com/) and [that link](https://test.com/)",
+        TextType.PLAIN,
+    )
+    new_nodes = split_nodes_link([node])
+    self.assertListEqual(
+        [
+            TextNode("This link", TextType.LINK, "https://example.com/"),
+            TextNode(" and ", TextType.PLAIN),
+            TextNode("that link", TextType.LINK, "https://test.com/"),
+        ],
+        new_nodes,
+    )
