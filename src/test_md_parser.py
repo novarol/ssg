@@ -1,6 +1,6 @@
 import unittest
 
-from md_parser import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from md_parser import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, split_nodes, markdown_to_blocks
 from textnode import TextNode, TextType
 
 class TestMDParser(unittest.TestCase):
@@ -152,3 +152,42 @@ class TestMDParser(unittest.TestCase):
         ],
         new_nodes,
     )
+
+  def test_split_nodes(self):
+    text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+    nodes = split_nodes(text)
+    self.assertListEqual(
+      nodes,
+      [
+        TextNode("This is ", TextType.PLAIN),
+        TextNode("text", TextType.BOLD),
+        TextNode(" with an ", TextType.PLAIN),
+        TextNode("italic", TextType.ITALIC),
+        TextNode(" word and a ", TextType.PLAIN),
+        TextNode("code block", TextType.CODE),
+        TextNode(" and an ", TextType.PLAIN),
+        TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+        TextNode(" and a ", TextType.PLAIN),
+        TextNode("link", TextType.LINK, "https://boot.dev"),
+      ]
+    )
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
